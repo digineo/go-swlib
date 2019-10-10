@@ -14,7 +14,7 @@ const (
 	CmdListPort
 	CmdGetPort
 	CmdSetPort
-	CmdListVLan
+	CmdListVLAN
 	CmdGetVLan
 	CmdSetVLan
 )
@@ -43,4 +43,11 @@ const (
 	AttrOPValueLink
 	AttrOPDescription
 	AttrPort
+)
+
+const (
+	AttrPortMapPorts AttributeType = iota
+	AttrPortMapSegment
+	AttrPortMapVirt
+	AttrPortMapMax
 )

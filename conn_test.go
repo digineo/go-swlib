@@ -69,7 +69,7 @@ func TestConn_ListSwitches(t *testing.T) {
 	require2.NoError(err)
 
 	require2.Len(switches, 1)
-	assert2.Equal(Switch{
+	assert2.Equal(Device{
 		ID:         1,
 		DeviceName: "switch0",
 		Alias:      "mt7530",

@@ -18,6 +18,26 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
 	fmt.Println(switches)
+
+	attributes, err := c.ListGlobalAttributes(&switches[0])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(attributes)
+
+	attributes, err = c.ListPortAttributes(&switches[0])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(attributes)
+
+	attributes, err = c.ListVLANAttributes(&switches[0])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(attributes)
 }
