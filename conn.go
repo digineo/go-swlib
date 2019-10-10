@@ -45,8 +45,7 @@ func (c *Conn) ListSwitches() ([]Switch, error) {
 		},
 	}
 
-	flags := netlink.Request | netlink.Dump
-	msgs, err := c.conn.Execute(req, c.family.ID, flags)
+	msgs, err := c.conn.Execute(req, c.family.ID, netlink.Request|netlink.Dump)
 	if err != nil {
 		return nil, err
 	}
