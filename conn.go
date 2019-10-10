@@ -53,29 +53,8 @@ func (c *Conn) ListSwitches() ([]Switch, error) {
 
 	switches := make([]Switch, len(msgs))
 	for i, m := range msgs {
-		ad, err := netlink.NewAttributeDecoder(m.Data)
-		if err != nil {
+		if err := switches[i].UnmarshalBytes(m.Data); err != nil {
 			return nil, err
-		}
-
-		for ad.Next() {
-			sw := &switches[i]
-			switch AttributeType(ad.Type()) {
-			case AttrId:
-				sw.ID = ad.Uint32()
-			case AttrDevName:
-				sw.DeviceName = ad.String()
-			case AttrName:
-				sw.Name = ad.String()
-			case AttrAlias:
-				sw.Alias = ad.String()
-			case AttrVLANs:
-				sw.VLANs = ad.Uint32()
-			case AttrPorts:
-				sw.Ports = ad.Uint32()
-			case AttrCPUPort:
-				sw.CPUPort = ad.Uint32()
-			}
 		}
 	}
 
