@@ -14,7 +14,7 @@ type Switch struct {
 	CPUPort    uint32
 }
 
-func (s *Switch) UnmarshalBytes(data []byte) error {
+func (s *Switch) UnmarshalBinary(data []byte) error {
 	ad, err := netlink.NewAttributeDecoder(data)
 	if err != nil {
 		return err

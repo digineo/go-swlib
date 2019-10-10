@@ -52,7 +52,7 @@ func (c *Conn) ListSwitches() ([]Switch, error) {
 
 	switches := make([]Switch, len(msgs))
 	for i, m := range msgs {
-		if err := switches[i].UnmarshalBytes(m.Data); err != nil {
+		if err := switches[i].UnmarshalBinary(m.Data); err != nil {
 			return nil, err
 		}
 	}
