@@ -24,7 +24,7 @@ type AttributeType int
 const (
 	AttrUnspec AttributeType = iota
 	AttrType
-	AttrId
+	AttrID
 	AttrDevName
 	AttrAlias
 	AttrName

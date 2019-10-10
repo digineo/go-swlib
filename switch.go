@@ -22,7 +22,7 @@ func (s *Switch) UnmarshalBytes(data []byte) error {
 
 	for ad.Next() {
 		switch AttributeType(ad.Type()) {
-		case AttrId:
+		case AttrID:
 			s.ID = ad.Uint32()
 		case AttrDevName:
 			s.DeviceName = ad.String()
