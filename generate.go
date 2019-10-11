@@ -1,5 +1,3 @@
 package swlib
 
-//go:generate stringer -type=AttributeType
-//go:generate stringer -type=DataType
-//go:generate stringer -type=Group
+//go:generate stringer -output generate_stringers.go -type=AttributeType,DataType,Group,LinkAttr,PortAttribute,PortMapAttribute

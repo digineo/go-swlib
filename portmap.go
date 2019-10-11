@@ -4,18 +4,26 @@ import (
 	"github.com/mdlayher/netlink"
 )
 
+type PortMapAttribute int
+
+const (
+	PortMapAttrPorts PortMapAttribute = iota
+	PortMapAttrSegment
+	PortMapAttrVirt
+)
+
 type PortMap struct {
-	Number  int
+	Number  uint32
 	Segment string
 	Virt    uint32
 }
 
 func (m *PortMap) UnmarshalAttributes(ad *netlink.AttributeDecoder) error {
 	for ad.Next() {
-		switch AttributeType(ad.Type()) {
-		case AttrPortMapSegment:
+		switch PortMapAttribute(ad.Type()) {
+		case PortMapAttrSegment:
 			m.Segment = ad.String()
-		case AttrPortMapVirt:
+		case PortMapAttrVirt:
 			m.Virt = ad.Uint32()
 		}
 	}

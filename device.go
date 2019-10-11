@@ -46,7 +46,7 @@ func (d *Device) UnmarshalAttributes(ad *netlink.AttributeDecoder) error {
 			ad.Nested(func(nad *netlink.AttributeDecoder) error {
 				for nad.Next() {
 					if AttributeType(nad.Type()) == AttrPorts {
-						pm := &PortMap{Number: len(d.PortMap)}
+						pm := &PortMap{Number: uint32(len(d.PortMap) + 1)}
 						nad.Nested(pm.UnmarshalAttributes)
 						d.PortMap = append(d.PortMap, pm)
 					}

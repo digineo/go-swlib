@@ -1,6 +1,7 @@
 package swlib
 
 import (
+	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
 )
 
@@ -24,7 +25,9 @@ const (
 )
 
 type Attribute struct {
-	AType       Group
+	Device *Device
+	Group  Group
+
 	ID          uint32
 	Type        DataType
 	Name        string
@@ -53,4 +56,21 @@ func (a *Attribute) UnmarshalBinary(data []byte) error {
 		return err
 	}
 	return a.UnmarshalAttributes(ad)
+}
+
+type Attributes map[string]*Attribute
+
+func AttributesFromMessages(d *Device, g Group, msgs []genetlink.Message) (Attributes, error) {
+	a := make(Attributes, len(msgs))
+	for _, m := range msgs {
+		attr := &Attribute{
+			Device: d,
+			Group:  g,
+		}
+		if err := attr.UnmarshalBinary(m.Data); err != nil {
+			return nil, err
+		}
+		a[attr.Name] = attr
+	}
+	return a, nil
 }

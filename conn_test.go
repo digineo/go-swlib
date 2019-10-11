@@ -77,6 +77,7 @@ func TestConn_ListSwitches(t *testing.T) {
 		VLANs:      4095,
 		Ports:      8,
 		CPUPort:    6,
+		PortMap:    []*PortMap{{1, "", 0}, {2, "", 0}, {3, "", 0}, {4, "", 0}, {5, "", 0}, {6, "", 0}, {7, "", 0}, {8, "", 0}},
 	}, switches[0])
 
 	m.AssertExpectations(t)

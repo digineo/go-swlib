@@ -1,3 +1,3 @@
 # swlib
 
-Native OpenWRT's swconfig bindings for Go. 
+Incomplete native OpenWRT's swconfig bindings for Go. 

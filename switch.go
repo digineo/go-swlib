@@ -44,10 +44,3 @@ const (
 	AttrOPDescription
 	AttrPort
 )
-
-const (
-	AttrPortMapPorts AttributeType = iota
-	AttrPortMapSegment
-	AttrPortMapVirt
-	AttrPortMapMax
-)

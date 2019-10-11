@@ -9,6 +9,13 @@ import (
 	"github.com/mdlayher/netlink"
 )
 
+func attributeAssertType(a *Attribute, t DataType) error {
+	if a.Type != t {
+		return fmt.Errorf("invalid data type: %s != %s", t, a.Type)
+	}
+	return nil
+}
+
 // connector represents a
 type connector interface {
 	io.Closer
@@ -39,23 +46,17 @@ func Dial(config *netlink.Config) (*Conn, error) {
 	return &Conn{conn: c, family: family}, nil
 }
 
-func (c *Conn) newRequest(cmd CommandType, data []byte) genetlink.Message {
+func (c *Conn) newRequest(cmd CommandType) genetlink.Message {
 	return genetlink.Message{
 		Header: genetlink.Header{
 			Command: uint8(cmd),
 			Version: c.family.Version,
 		},
-		Data: data,
 	}
 }
 
 func (c *Conn) query(cmd CommandType, flags netlink.HeaderFlags, data encoding.BinaryMarshaler) ([]genetlink.Message, error) {
-	req := genetlink.Message{
-		Header: genetlink.Header{
-			Command: uint8(cmd),
-			Version: c.family.Version,
-		},
-	}
+	req := c.newRequest(cmd)
 
 	if data != nil {
 		var err error
@@ -65,6 +66,25 @@ func (c *Conn) query(cmd CommandType, flags netlink.HeaderFlags, data encoding.B
 	}
 
 	return c.conn.Execute(req, c.family.ID, netlink.Request|flags)
+}
+
+func (c *Conn) getAttribute(a *Attribute, portOrVLAN uint32) ([]genetlink.Message, error) {
+	var cmd CommandType
+	switch a.Group {
+	case GroupGlobal:
+		cmd = CmdGetGlobal
+	case GroupPort:
+		cmd = CmdGetPort
+	case GroupVLAN:
+		cmd = CmdGetVLan
+	default:
+		return nil, fmt.Errorf("%w: %s", ErrInvalidAttributeType, a.Group)
+	}
+
+	return c.query(cmd, 0, &sendAttribute{
+		attribute:  a,
+		portOrVLAN: portOrVLAN,
+	})
 }
 
 func (c *Conn) ListSwitches() ([]Device, error) {
@@ -83,41 +103,82 @@ func (c *Conn) ListSwitches() ([]Device, error) {
 	return switches, nil
 }
 
-func marshalAttributes(g Group, msgs []genetlink.Message) ([]Attribute, error) {
-	attributes := make([]Attribute, len(msgs)-1)
-	for i, m := range msgs[:len(msgs)-1] {
-		attribute := &attributes[i]
-		attribute.AType = g
-		if err := attribute.UnmarshalBinary(m.Data); err != nil {
-			return nil, err
-		}
-	}
-	return attributes, nil
-}
-
-func (c *Conn) ListGlobalAttributes(dev *Device) ([]Attribute, error) {
+func (c *Conn) ListGlobalAttributes(dev *Device) (a Attributes, err error) {
 	msgs, err := c.query(CmdListGlobal, netlink.Acknowledge, &DeviceBase{ID: dev.ID})
 	if err != nil {
-		return nil, fmt.Errorf("netlink execute failed: %w", err)
+		return nil, err
 	}
 
-	return marshalAttributes(GroupGlobal, msgs)
+	return AttributesFromMessages(dev, GroupGlobal, msgs[:len(msgs)-1])
 }
 
-func (c *Conn) ListPortAttributes(dev *Device) ([]Attribute, error) {
+func (c *Conn) ListPortAttributes(dev *Device) (a Attributes, err error) {
 	msgs, err := c.query(CmdListPort, netlink.Acknowledge, &DeviceBase{ID: dev.ID})
 	if err != nil {
-		return nil, fmt.Errorf("netlink execute failed: %w", err)
+		return nil, err
 	}
 
-	return marshalAttributes(GroupPort, msgs)
+	return AttributesFromMessages(dev, GroupPort, msgs[:len(msgs)-1])
 }
 
-func (c *Conn) ListVLANAttributes(dev *Device) ([]Attribute, error) {
+func (c *Conn) ListVLANAttributes(dev *Device) (a Attributes, err error) {
 	msgs, err := c.query(CmdListVLAN, netlink.Acknowledge, &DeviceBase{ID: dev.ID})
 	if err != nil {
-		return nil, fmt.Errorf("netlink execute failed: %w", err)
+		return nil, err
 	}
 
-	return marshalAttributes(GroupVLAN, msgs)
+	return AttributesFromMessages(dev, GroupVLAN, msgs[:len(msgs)-1])
+}
+
+func (c *Conn) GetAttributeLink(a *Attribute, portOrVLAN uint32) (l *Link, err error) {
+	if err := attributeAssertType(a, DataTypeLink); err != nil {
+		return nil, err
+	}
+
+	msgs, err := c.getAttribute(a, portOrVLAN)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range msgs {
+		ad, err := netlink.NewAttributeDecoder(m.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		for ad.Next() {
+			if AttributeType(ad.Type()) == AttrOPValueLink {
+				l = &Link{}
+				ad.Nested(l.UnmarshalAttributes)
+			}
+		}
+	}
+
+	return
+}
+
+func (c *Conn) GetAttributePorts(a *Attribute, portOrVLAN uint32) (p Ports, err error) {
+	if err := attributeAssertType(a, DataTypePorts); err != nil {
+		return nil, err
+	}
+
+	msgs, err := c.getAttribute(a, portOrVLAN)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range msgs {
+		ad, err := netlink.NewAttributeDecoder(m.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		for ad.Next() {
+			if AttributeType(ad.Type()) == AttrOPValuePorts {
+				ad.Nested(p.UnmarshalAttributes)
+			}
+		}
+	}
+
+	return
 }
