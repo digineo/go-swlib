@@ -182,3 +182,28 @@ func (c *Conn) GetAttributePorts(a *Attribute, portOrVLAN uint32) (p Ports, err 
 
 	return
 }
+
+func (c *Conn) GetAttributeInt(a *Attribute, portOrVLAN uint32) (uint32, error) {
+	if err := attributeAssertType(a, DataTypeInt); err != nil {
+		return 0, err
+	}
+
+	msgs, err := c.getAttribute(a, portOrVLAN)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, m := range msgs {
+		ad, err := netlink.NewAttributeDecoder(m.Data)
+		if err != nil {
+			return 0, err
+		}
+
+		for ad.Next() {
+			if AttributeType(ad.Type()) == AttrOPValueInt {
+				return ad.Uint32(), nil
+			}
+		}
+	}
+	return 0, fmt.Errorf("%w: emtpy answer", ErrIncompatibleNetlink)
+}

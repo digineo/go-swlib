@@ -1,6 +1,8 @@
 package swlib
 
 import (
+	"fmt"
+
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
 )
@@ -70,6 +72,11 @@ func AttributesFromMessages(d *Device, g Group, msgs []genetlink.Message) (Attri
 		if err := attr.UnmarshalBinary(m.Data); err != nil {
 			return nil, err
 		}
+
+		if _, ok := a[attr.Name]; ok {
+			return nil, fmt.Errorf("%w: duplicate key %s", ErrIncompatibleNetlink, attr.Name)
+		}
+
 		a[attr.Name] = attr
 	}
 	return a, nil

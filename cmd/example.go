@@ -43,6 +43,13 @@ func main() {
 			return
 		}
 		fmt.Println(i, l)
+
+		pvid, err := c.GetAttributeInt(attributes["pvid"], i)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(i, pvid)
 	}
 
 	fmt.Println()
