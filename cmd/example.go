@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/digineo/swlib"
+	"github.com/digineo/go-swlib"
 )
 
 func main() {

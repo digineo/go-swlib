@@ -1,4 +1,4 @@
-module github.com/digineo/swlib
+module github.com/digineo/go-swlib
 
 go 1.12
 
