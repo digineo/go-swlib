@@ -68,6 +68,13 @@ func (c *Conn) query(cmd CommandType, flags netlink.HeaderFlags, data encoding.B
 	return c.conn.Execute(req, c.family.ID, netlink.Request|flags)
 }
 
+// Close closes the connection.
+func (c *Conn) Close() error {
+	err := c.conn.Close()
+	c.conn = nil
+	return err
+}
+
 func (c *Conn) getAttribute(a *Attribute, portOrVLAN uint32) ([]genetlink.Message, error) {
 	var cmd CommandType
 	switch a.Group {
