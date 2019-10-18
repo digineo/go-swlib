@@ -1,0 +1,43 @@
+version: 2.1
+jobs:
+  build_1_13:
+    docker:
+      - image: circleci/golang:1.13.3
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-sum-{{ checksum "go.sum" }}
+            - go-mod-v1-sum-
+      - run: go mod download
+      - run: go mod verify
+      - run: make test
+      - run: make setup_ci lint
+      - run: make codecov_coverage
+      - save_cache:
+          key: go-mod-v1-sum-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+  build_1_12:
+    docker:
+      - image: circleci/golang:1.12.12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-sum-{{ checksum "go.sum" }}
+            - go-mod-v1-sum-
+      - run: go mod download
+      - run: go mod verify
+      - run: make test
+      - save_cache:
+          key: go-mod-v1-sum-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build_1_12
+      - build_1_13
